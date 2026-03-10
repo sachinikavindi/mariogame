@@ -34,4 +34,13 @@ export const useGameStore = create((set) => ({
   setCollider: (collider) => set({ collider }),
   trackScene: null,
   setTrackScene: (trackScene) => set({ trackScene }),
+  // Banana Game popup (when hitting obstacle)
+  showBananaPopup: false,
+  setShowBananaPopup: (show) => set({ showBananaPopup: show }),
+  // Lives (5 max; lose 1 on obstacle hit, gain 1 for correct Banana answer)
+  lives: 5,
+  setLives: (lives) => set((state) => ({ lives: Math.max(0, Math.min(5, lives)) })),
+  // Show lives only after loading screen is gone (car on track)
+  loadingComplete: false,
+  setLoadingComplete: (value) => set({ loadingComplete: value }),
 }));
