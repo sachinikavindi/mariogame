@@ -1,7 +1,7 @@
 import { Kart } from "./models/Kart";
 import { useKeyboardControls, OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Vector3, MeshBasicMaterial } from "three";
 import { damp } from "three/src/math/MathUtils.js";
 import { kartSettings } from "./constants";
@@ -42,6 +42,11 @@ export const PlayerController = () => {
   const gamepadRef = useRef(null);
   const inputTurn = useRef(0);
 
+  // Temple-run style obstacles
+  const [obstacles, setObstacles] = useState([]);
+  const obstacleIdRef = useRef(0);
+  const obstacleSpawnTimer = useRef(0);
+
   const [, get] = useKeyboardControls();
 
   const speedRef = useRef(0);
@@ -59,6 +64,8 @@ export const PlayerController = () => {
   const setIsBoosting = useGameStore((state) => state.setIsBoosting);
   const setSpeed = useGameStore((state) => state.setSpeed);
   const setGamepad = useGameStore((state) => state.setGamepad);
+  const setShowBananaPopup = useGameStore((state) => state.setShowBananaPopup);
+  const setLives = useGameStore((state) => state.setLives);
 
   // Collision system
   const colliderRef = useRef(null);
@@ -388,13 +395,100 @@ export const PlayerController = () => {
     const isJumpPressed = jumpButtonPressed || jump || gamepadButtons.jump;
     jumpPlayer(isJumpPressed, left, right, joystick.x || gamepadButtons.x);
     driftPlayer(delta);
+
+    // --- Obstacle spawning & collisions (Temple Run style) ---
+    // Countdown spawn timer
+    obstacleSpawnTimer.current -= delta;
+
+    // Spawn new obstacle ahead of the player while moving
+    if (speedRef.current > 5 && obstacleSpawnTimer.current <= 0) {
+      obstacleSpawnTimer.current = 1.5 + Math.random() * 1.5; // seconds between spawns
+
+      const forward = smoothedDirectionRef.current.clone().normalize();
+      const spawnDistance = 35 + Math.random() * 25;
+      const lateralOffset = (Math.random() - 0.5) * 8; // left/right lane
+
+      const up = new Vector3(0, 1, 0);
+      const side = new Vector3().crossVectors(up, forward).normalize();
+
+      const spawnPosition = new Vector3()
+        .copy(player.position)
+        .add(forward.multiplyScalar(spawnDistance))
+        .add(side.multiplyScalar(lateralOffset));
+
+      // Keep obstacles on the same height as the kart
+      spawnPosition.y = player.position.y;
+
+      const id = obstacleIdRef.current++;
+      setObstacles((current) => [
+        ...current,
+        { id, position: spawnPosition, hit: false },
+      ]);
+    }
+
+    // Handle obstacle collisions and clean up old ones
+    if (obstacles.length) {
+      const hitRadius = 2.5;
+      const maxDistance = 200;
+      const playerPos = player.position.clone();
+      let needsCleanup = false;
+
+      obstacles.forEach((obstacle) => {
+        // Collision: simple distance check
+        if (!obstacle.hit) {
+          const distance = obstacle.position.distanceTo(playerPos);
+          if (distance < hitRadius && collisionStunTimer.current <= 0) {
+            setObstacles((prev) =>
+              prev.map((o) => (o.id === obstacle.id ? { ...o, hit: true } : o))
+            );
+            // Lose one life on obstacle hit
+            const currentLives = useGameStore.getState().lives;
+            setLives(currentLives - 1);
+            // Reuse existing collision stun system
+            speedRef.current = COLLISION_BOUNCE_SPEED;
+            collisionStunTimer.current = COLLISION_STUN_DURATION;
+            // Open Banana Game popup (answer correctly to gain a life back)
+            setShowBananaPopup(true);
+          }
+        }
+
+        // Mark obstacles that are far away for cleanup
+        if (obstacle.position.distanceTo(playerPos) > maxDistance) {
+          needsCleanup = true;
+        }
+      });
+
+      if (needsCleanup) {
+        setObstacles((current) =>
+          current.filter(
+            (obstacle) =>
+              obstacle.position.distanceTo(playerPos) <= maxDistance
+          )
+        );
+      }
+    }
+
     getGamepad();
     updatePlayroomState();
   });
 
   return (
     <>
-      <group></group>
+      {/* Obstacles placed along the track */}
+      <group>
+        {obstacles.map((obstacle) => (
+          <mesh
+            key={obstacle.id}
+            position={obstacle.position}
+            name="obstacle"
+          >
+            <boxGeometry args={[2, 2, 2]} />
+            <meshStandardMaterial
+              color={obstacle.hit ? "gray" : "orange"}
+            />
+          </mesh>
+        ))}
+      </group>
       <group ref={playerRef}>
         <group ref={cameraGroupRef} position={[0, 1, 5]}></group>
 

@@ -202,6 +202,30 @@ canvas{
   font-weight: 300;
 }
 
+.lives-display {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.lives-heart {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.lives-heart.full {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(255, 100, 100, 0.6));
+}
+
+.lives-heart.empty {
+  opacity: 0.25;
+}
+
 @keyframes fadeInMoveUp {
   0%, 100% {
     transform: translateY(0px) skewX(-6deg);
@@ -209,4 +233,154 @@ canvas{
   50% {
     transform: translateY(-5px) skewX(-6deg);
   }
+}
+
+/* Banana Game popup (on obstacle hit) */
+.banana-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.banana-popup {
+  background: linear-gradient(145deg, #2d1f0f 0%, #1a1208 100%);
+  border: 3px solid #e8a317;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 0 40px rgba(232, 163, 23, 0.3);
+}
+
+.banana-popup-header {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.banana-popup-header h2 {
+  color: #ffd54f;
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.banana-popup-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+.banana-popup-loading,
+.banana-popup-error {
+  text-align: center;
+  padding: 24px;
+  color: #fff;
+}
+
+.banana-popup-error {
+  color: #ff6b6b;
+}
+
+.banana-popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.banana-popup-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: #1a1208;
+}
+
+.banana-popup-hint {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+}
+
+.banana-popup-input {
+  width: 100%;
+  max-width: 120px;
+  padding: 10px 14px;
+  font-size: 1.1rem;
+  text-align: center;
+  border: 2px solid #e8a317;
+  border-radius: 8px;
+  background: #1a1208;
+  color: #ffd54f;
+}
+
+.banana-popup-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(232, 163, 23, 0.5);
+}
+
+.banana-popup-input::placeholder {
+  color: rgba(255, 213, 79, 0.4);
+}
+
+.banana-popup-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.banana-popup-submit {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1208;
+  background: linear-gradient(180deg, #7cb342 0%, #558b2f 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.banana-popup-submit:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(124, 179, 66, 0.5);
+}
+
+.banana-popup-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.banana-popup-feedback {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.banana-popup-feedback--correct {
+  color: #81c784;
+}
+
+.banana-popup-feedback--wrong {
+  color: #ff6b6b;
+}
+
+.banana-popup-continue {
+  display: block;
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1208;
+  background: linear-gradient(180deg, #ffd54f 0%, #e8a317 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.banana-popup-continue:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(232, 163, 23, 0.5);
 }
