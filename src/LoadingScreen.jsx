@@ -21,7 +21,7 @@ export const LoadingScreen = () => {
     if (progress === 100) {
       gsap.to(screenRef.current, {
         autoAlpha: 0,
-        duration: 0.5,
+        duration: 0.2,
         delay: 1,
         onComplete: () => setLoadingComplete(true),
       });

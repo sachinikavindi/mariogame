@@ -18,6 +18,8 @@ import { MeshBVHHelper } from "three-mesh-bvh";
 const isDebugMode = typeof window !== "undefined" && window.location.search.includes("debug");
 if (isDebugMode) console.log("🔧 Debug mode enabled - collision visualization active");
 
+const GAME_TIME_LIMIT_MS = 2 * 60 * 1000; // 2 minutes
+
 export const PlayerController = () => {
   const rbRef = useRef(null);
   const playerRef = useRef(null);
@@ -66,6 +68,8 @@ export const PlayerController = () => {
   const setGamepad = useGameStore((state) => state.setGamepad);
   const setShowBananaPopup = useGameStore((state) => state.setShowBananaPopup);
   const setLives = useGameStore((state) => state.setLives);
+  const endGame = useGameStore((state) => state.endGame);
+  const setGameStartPosition = useGameStore((state) => state.setGameStartPosition);
 
   // Collision system
   const colliderRef = useRef(null);
@@ -371,6 +375,29 @@ export const PlayerController = () => {
 
     if (!player || !cameraGroup || !kart) return;
 
+    const gameStatus = useGameStore.getState().gameStatus;
+    const showBananaPopup = useGameStore.getState().showBananaPopup;
+    const startPos = useGameStore.getState().gameStartPosition;
+
+    // Freeze gameplay until the player starts, and while popups are open, or after the game ends.
+    if (gameStatus !== "running" || showBananaPopup) {
+      speedRef.current = damp(speedRef.current, 0, 6, delta);
+      setSpeed(speedRef.current);
+      setIsBoosting(false);
+      rotatePlayer(false, false, player, 0, delta);
+      updatePlayer(player, 0, camera, kart, delta);
+      getGamepad();
+      updatePlayroomState();
+      return;
+    }
+
+    // Time limit: end game at 2 minutes
+    const startedAt = useGameStore.getState().gameStartAtMs;
+    if (startedAt && Date.now() - startedAt >= GAME_TIME_LIMIT_MS) {
+      endGame("time");
+      return;
+    }
+
     const joystick = useGameStore.getState().joystick;
     const jumpButtonPressed = useGameStore.getState().jumpButtonPressed;
 
@@ -395,6 +422,11 @@ export const PlayerController = () => {
     const isJumpPressed = jumpButtonPressed || jump || gamepadButtons.jump;
     jumpPlayer(isJumpPressed, left, right, joystick.x || gamepadButtons.x);
     driftPlayer(delta);
+
+    // Set game start position once, when running begins
+    if (!startPos) {
+      setGameStartPosition({ x: player.position.x, y: player.position.y, z: player.position.z });
+    }
 
     // --- Obstacle spawning & collisions (Temple Run style) ---
     // Countdown spawn timer
@@ -443,12 +475,17 @@ export const PlayerController = () => {
             );
             // Lose one life on obstacle hit
             const currentLives = useGameStore.getState().lives;
-            setLives(currentLives - 1);
+            const nextLives = currentLives - 1;
+            setLives(nextLives);
             // Reuse existing collision stun system
             speedRef.current = COLLISION_BOUNCE_SPEED;
             collisionStunTimer.current = COLLISION_STUN_DURATION;
             // Open Banana Game popup (answer correctly to gain a life back)
             setShowBananaPopup(true);
+            if (nextLives <= 0) {
+              endGame("no_lives");
+              return;
+            }
           }
         }
 

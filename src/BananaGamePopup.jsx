@@ -15,6 +15,9 @@ export function BananaGamePopup() {
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState(null); // "correct" | "wrong" | null
   const [lifeAwarded, setLifeAwarded] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  const canContinue = hasSubmitted;
 
   useEffect(() => {
     if (!showBananaPopup) {
@@ -23,6 +26,7 @@ export function BananaGamePopup() {
       setAnswer("");
       setFeedback(null);
       setLifeAwarded(false);
+      setHasSubmitted(false);
       return;
     }
     setLoading(true);
@@ -30,6 +34,7 @@ export function BananaGamePopup() {
     setAnswer("");
     setFeedback(null);
     setLifeAwarded(false);
+    setHasSubmitted(false);
     fetch(BANANA_API)
       .then((res) => res.json())
       .then((data) => {
@@ -43,11 +48,14 @@ export function BananaGamePopup() {
   }, [showBananaPopup]);
 
   const handleClose = () => {
+    if (!canContinue) return;
     setShowBananaPopup(false);
   };
 
   const handleSubmitAnswer = () => {
     if (!gameData || loading) return;
+    if (answer.trim() === "") return;
+    setHasSubmitted(true);
     const solution = gameData.solution;
     const userValue = answer.trim() === "" ? NaN : Number(answer.trim());
     const isCorrect = userValue === solution || String(userValue) === String(solution);
@@ -66,7 +74,7 @@ export function BananaGamePopup() {
   if (!showBananaPopup) return null;
 
   return (
-    <div className="banana-popup-overlay" onClick={handleClose}>
+    <div className="banana-popup-overlay">
       <div
         className="banana-popup"
         onClick={(e) => e.stopPropagation()}
@@ -81,7 +89,9 @@ export function BananaGamePopup() {
         </div>
         {loading && <p className="banana-popup-loading">Loading...</p>}
         {error && (
-          <p className="banana-popup-error">{error}</p>
+          <p className="banana-popup-error">
+            {error} — please refresh and try again.
+          </p>
         )}
         {gameData && !loading && (
           <div className="banana-popup-content">
@@ -106,7 +116,6 @@ export function BananaGamePopup() {
               type="button"
               className="banana-popup-submit"
               onClick={handleSubmitAnswer}
-              disabled={feedback === "correct"}
             >
               Check answer
             </button>
@@ -117,7 +126,7 @@ export function BananaGamePopup() {
             )}
             {feedback === "wrong" && (
               <p className="banana-popup-feedback banana-popup-feedback--wrong">
-                Wrong, try again
+                Wrong (or empty). You can continue, or try again.
               </p>
             )}
           </div>
@@ -126,9 +135,15 @@ export function BananaGamePopup() {
           type="button"
           className="banana-popup-continue"
           onClick={handleClose}
+          disabled={!canContinue}
         >
           Continue
         </button>
+        {!canContinue && (
+          <p className="banana-popup-blocked">
+            Enter an answer (right or wrong) to continue.
+          </p>
+        )}
       </div>
     </div>
   );

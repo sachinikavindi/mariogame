@@ -16,6 +16,7 @@
     "@react-three/postprocessing": "^3.0.4",
     "@react-three/rapier": "^2.1.0",
     "@three.ez/instanced-mesh": "^0.3.4",
+    "firebase": "^12.10.0",
     "gsap": "^3.13.0",
     "leva": "^0.10.0",
     "meshline": "^3.3.1",
