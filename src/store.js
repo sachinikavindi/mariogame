@@ -1,6 +1,97 @@
 import { create } from "zustand";
+import { me } from "playroomkit";
+import {
+  saveLeaderboardEntry,
+  loadTopLeaderboardEntries,
+} from "./firebaseLeaderboard";
+
+function getPlayroomProfileName() {
+  try {
+    const self = me?.();
+    const profile = self?.getProfile?.();
+    const name = profile?.name;
+    if (typeof name === "string" && name.trim()) return name.trim();
+  } catch {
+    // ignore
+  }
+  return null;
+}
 
 export const useGameStore = create((set) => ({
+  // --- Core gameplay state ---
+  gameStatus: "idle", // "idle" | "running" | "ended"
+  endReason: null, // "finish" | "no_lives" | "time" | null
+  gameStartAtMs: null,
+  gameEndAtMs: null,
+  gameStartPosition: null, // { x, y, z }
+  setGameStartPosition: (pos) => set({ gameStartPosition: pos }),
+  leaderboard: [], // [{ name, durationMs, endedAtMs, reason }]
+  leaderboardLoading: false,
+  leaderboardError: null,
+  setLeaderboard: (rows) => set({ leaderboard: rows }),
+  refreshLeaderboard: async () => {
+    set({ leaderboardLoading: true, leaderboardError: null });
+    try {
+      const rows = await loadTopLeaderboardEntries(10);
+      if (Array.isArray(rows)) {
+        set({ leaderboard: rows, leaderboardLoading: false });
+      } else {
+        set({ leaderboardLoading: false });
+      }
+    } catch (err) {
+      set({
+        leaderboardLoading: false,
+        leaderboardError: err?.message || "Failed to load leaderboard",
+      });
+    }
+  },
+  startGame: () =>
+    set(() => ({
+      gameStatus: "running",
+      endReason: null,
+      gameStartAtMs: Date.now(),
+      gameEndAtMs: null,
+      gameStartPosition: null,
+      lives: 5,
+      showBananaPopup: false,
+    })),
+  endGame: (reason) =>
+    set((state) => {
+      const endedAtMs = Date.now();
+      const startAt = state.gameStartAtMs ?? endedAtMs;
+      const durationMs = Math.max(0, endedAtMs - startAt);
+      const name = getPlayroomProfileName() || "Player";
+      const lives = state.lives ?? 0;
+      const newEntry = {
+        name,
+        durationMs,
+        endedAtMs,
+        reason: reason ?? state.endReason ?? null,
+        lives,
+      };
+
+      // Fire-and-forget save to Firebase
+      saveLeaderboardEntry(newEntry).catch(() => {});
+
+      return {
+        gameStatus: "ended",
+        endReason: reason ?? state.endReason ?? "finish",
+        gameEndAtMs: endedAtMs,
+        showBananaPopup: false,
+        leaderboard: [newEntry, ...(state.leaderboard || [])],
+      };
+    }),
+  resetGame: () =>
+    set(() => ({
+      gameStatus: "idle",
+      endReason: null,
+      gameStartAtMs: null,
+      gameEndAtMs: null,
+      gameStartPosition: null,
+      lives: 5,
+      showBananaPopup: false,
+    })),
+
   playerPosition: null,
   setPlayerPosition: (position) => set({ playerPosition: position }),
   speed: null,

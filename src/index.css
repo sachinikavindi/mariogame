@@ -226,6 +226,132 @@ canvas{
   opacity: 0.25;
 }
 
+/* Top-right game timer */
+.game-timer {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-family: "DIN 2014";
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
+/* Generic overlay for start + leaderboard */
+.overlay-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  padding: 16px;
+}
+
+.overlay-card {
+  width: min(520px, 92vw);
+  background: linear-gradient(145deg, #111 0%, #1a1a1a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
+  color: #fff;
+}
+
+.overlay-title {
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+}
+
+.overlay-subtitle {
+  opacity: 0.85;
+  margin-bottom: 14px;
+}
+
+.overlay-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.overlay-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.overlay-button {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(180deg, #ffd54f 0%, #e8a317 100%);
+  color: #1a1208;
+}
+
+.overlay-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.leaderboard {
+  margin: 12px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-empty {
+  opacity: 0.8;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 70px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.leaderboard-rank {
+  opacity: 0.85;
+  font-family: "DIN 2014";
+}
+
+.leaderboard-name {
+  font-weight: 600;
+}
+
+.leaderboard-lives {
+  font-family: "DIN 2014";
+  font-weight: 600;
+  text-align: center;
+}
+
+.leaderboard-time {
+  font-family: "DIN 2014";
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
 @keyframes fadeInMoveUp {
   0%, 100% {
     transform: translateY(0px) skewX(-6deg);
@@ -380,7 +506,21 @@ canvas{
   transition: transform 0.1s, box-shadow 0.1s;
 }
 
-.banana-popup-continue:hover {
+.banana-popup-continue:hover:not(:disabled) {
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(232, 163, 23, 0.5);
+}
+
+.banana-popup-continue:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.banana-popup-blocked {
+  margin-top: 10px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
 }
