@@ -4,23 +4,44 @@ import {
   saveLeaderboardEntry,
   loadTopLeaderboardEntries,
 } from "./firebaseLeaderboard";
+import {
+  getVirtualIdentityCookie,
+  setVirtualIdentityCookie,
+} from "./utils/cookies";
 
 function getPlayroomProfileName() {
   try {
     const self = me?.();
-    const profile = self?.getProfile?.();
-    const name = profile?.name;
-    if (typeof name === "string" && name.trim()) return name.trim();
+    if (!self) return null;
+    const profile = self.getProfile?.();
+    const name =
+      (profile && typeof profile.name === "string" && profile.name.trim()) ||
+      (self.state?.profile && typeof self.state.profile.name === "string" && self.state.profile.name.trim());
+    if (name) return name.trim();
   } catch {
     // ignore
   }
   return null;
 }
 
+function resolveDisplayName() {
+  const fromPlayroom = getPlayroomProfileName();
+  if (fromPlayroom) {
+    setVirtualIdentityCookie(fromPlayroom);
+    return fromPlayroom;
+  }
+  const fromCookie = getVirtualIdentityCookie();
+  if (fromCookie) return fromCookie;
+  return "Player";
+}
+
 export const useGameStore = create((set) => ({
   // --- Core gameplay state ---
   gameStatus: "idle", // "idle" | "running" | "ended"
   endReason: null, // "finish" | "no_lives" | "time" | null
+  displayName: "Player",
+  setDisplayName: (name) => set({ displayName: name || "Player" }),
+  syncVirtualIdentity: () => set({ displayName: resolveDisplayName() }),
   gameStartAtMs: null,
   gameEndAtMs: null,
   gameStartPosition: null, // { x, y, z }
@@ -60,7 +81,7 @@ export const useGameStore = create((set) => ({
       const endedAtMs = Date.now();
       const startAt = state.gameStartAtMs ?? endedAtMs;
       const durationMs = Math.max(0, endedAtMs - startAt);
-      const name = getPlayroomProfileName() || "Player";
+      const name = resolveDisplayName();
       const lives = state.lives ?? 0;
       const newEntry = {
         name,

@@ -202,6 +202,33 @@ canvas{
   font-weight: 300;
 }
 
+/* Virtual identity (Playroom name or cookie fallback) - shown during game/demo */
+.virtual-identity-badge {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  pointer-events: none;
+  font-family: "DIN 2014", sans-serif;
+}
+.virtual-identity-label {
+  opacity: 0.85;
+  font-size: 0.85rem;
+}
+.virtual-identity-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #ffd54f;
+}
+
 .lives-display {
   position: fixed;
   top: 16px;

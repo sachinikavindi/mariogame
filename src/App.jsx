@@ -18,7 +18,7 @@ import { PlayroomStarter } from "./PlayroomStarter";
 
 export const App = () => {
   const controls = [
-    { name: "forward", keys: ["ArrowUp", "KeyW"] },
+    { name: "forward", keys: ["ArrowUp", "KeyW"] },//event driven arcitecture for controls, instead of polling the keyboard state in the game loop, we can listen to keydown and keyup events and update the game state accordingly. This way, we can have more responsive controls and avoid missing inputs due to timing issues.
     { name: "backward", keys: ["ArrowDown", "KeyS"] },
     { name: "left", keys: ["ArrowLeft", "KeyA"] },
     { name: "right", keys: ["ArrowRight", "KeyD"] },

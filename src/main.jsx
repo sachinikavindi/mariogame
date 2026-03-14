@@ -15,6 +15,16 @@ function formatDuration(ms) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centis).padStart(2, '0')}`
 }
 
+function VirtualIdentityBadge() {
+  const displayName = useGameStore((s) => s.displayName)
+  return (
+    <div className="virtual-identity-badge" aria-label={`Playing as ${displayName}`}>
+      <span className="virtual-identity-label">Playing as</span>
+      <span className="virtual-identity-name">{displayName}</span>
+    </div>
+  )
+}
+
 function LivesDisplay() {
   const lives = useGameStore((state) => state.lives)
   return (
@@ -100,14 +110,33 @@ function AppContent() {
   const loadingComplete = useGameStore((state) => state.loadingComplete)
   const gameStatus = useGameStore((s) => s.gameStatus)
   const startGame = useGameStore((s) => s.startGame)
+  const syncVirtualIdentity = useGameStore((s) => s.syncVirtualIdentity)
 
   useEffect(() => {
     if (loadingComplete && gameStatus === 'idle') startGame()
   }, [loadingComplete, gameStatus, startGame])
 
+  useEffect(() => {
+    if (!loadingComplete) return
+    syncVirtualIdentity()
+    const t1 = setTimeout(syncVirtualIdentity, 800)
+    const t2 = setTimeout(syncVirtualIdentity, 2000)
+    const t3 = setTimeout(syncVirtualIdentity, 4000)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [loadingComplete, syncVirtualIdentity])
+
   return (
     <div className='canvas-container'>
-      {loadingComplete && <LivesDisplay />}
+      {loadingComplete && (
+        <>
+          <VirtualIdentityBadge />
+          <LivesDisplay />
+        </>
+      )}
       <GameTimer />
       <MobileControls/>
       <Suspense fallback={false}>
@@ -116,7 +145,7 @@ function AppContent() {
       <LoadingScreen />
       <BananaGamePopup />
       <LeaderboardOverlay />
-      <div className="version">v0.3.4</div>
+      <div className="version">v0.0.3</div>
     </div>
   )
 }

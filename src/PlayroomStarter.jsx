@@ -1,6 +1,7 @@
 import { insertCoin, onPlayerJoin, me } from "playroomkit";
 import { useEffect, useRef, memo } from "react";
 import { usePlayroomStore } from "./playroomStore";
+import { useGameStore } from "./store";
 import { extend, useFrame } from "@react-three/fiber";
 import { BoxGeometry, DoubleSide, MeshBasicMaterial } from "three";
 import { InstancedMesh2 } from "@three.ez/instanced-mesh";
@@ -22,6 +23,7 @@ const PlayroomStarterInner = () => {
 
     const start = async () => {
       await insertCoin();
+      useGameStore.getState().syncVirtualIdentity();
 
       onPlayerJoin((state) => {
         if (state.id === me().id) return;

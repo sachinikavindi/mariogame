@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGameStore } from "./store";
 
-const BANANA_API = "https://marcconrad.com/uob/banana/api.php?out=json";
+const BANANA_API = "https://marcconrad.com/uob/banana/api.php?out=json"; //banana api
 const MAX_LIVES = 5;
 
 export function BananaGamePopup() {
